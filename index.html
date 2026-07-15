@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sohan Saimbhi — Security Engineer</title>
+<meta name="description" content="security engineer. core red teamer. i think in attack paths.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="9" fill="none" stroke="%23ff4d63" stroke-width="2"/><circle cx="16" cy="16" r="3" fill="%23ff4d63"/><line x1="16" y1="2" x2="16" y2="8" stroke="%23ff4d63" stroke-width="2"/><line x1="16" y1="24" x2="16" y2="30" stroke="%23ff4d63" stroke-width="2"/><line x1="2" y1="16" x2="8" y2="16" stroke="%23ff4d63" stroke-width="2"/><line x1="24" y1="16" x2="30" y2="16" stroke="%23ff4d63" stroke-width="2"/></svg>'>
+<style>
+:root{
+  --bg:#0b0709;
+  --bg-2:#120b0e;
+  --panel:#150e11;
+  --line:#291b20;
+  --line-2:#3b262d;
+  --red:#e2384f;
+  --red-b:#ff4d63;
+  --red-dim:#4a1620;
+  --ember:#ff8663;
+  --silver:#b9b0b3;
+  --ink:#efe8ea;
+  --muted:#9c878d;
+  --faint:#5e484e;
+  --grad:linear-gradient(100deg,#ff4d63 0%,#ff8663 45%,#b9b0b3 100%);
+  --display:'Unbounded',sans-serif;
+  --body:'Space Grotesk',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:var(--line-2) var(--bg)}
+::-webkit-scrollbar{width:9px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--red-dim)}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;overflow-x:hidden;
+  background-image:radial-gradient(ellipse 75% 55% at 15% -10%,rgba(255,77,99,.11),transparent 60%),
+                   radial-gradient(ellipse 60% 45% at 90% 20%,rgba(255,134,99,.06),transparent 60%),
+                   radial-gradient(ellipse 80% 55% at 55% 112%,rgba(185,176,179,.05),transparent 60%)}
+::selection{background:var(--red-b);color:#160508}
+a{color:var(--red-b);text-decoration:none}
+a:hover{text-decoration:underline}
+a:focus-visible,button:focus-visible{outline:2px solid var(--red-b);outline-offset:3px}
+h1,h2,h3{font-family:var(--display);font-weight:600}
+.grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---------- HERO: WARP → ASCII GRAPH ---------- */
+.hero{position:relative;height:100vh;min-height:560px;overflow:hidden;background:#070406}
+#sky{position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none}
+#sky.dragging{cursor:grabbing}
+.hero-ui{position:absolute;top:0;left:0;right:0;padding:30px 38px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;z-index:3;opacity:0;transition:opacity 1.2s ease .2s}
+.hero.arrived .hero-ui{opacity:1}
+.hero-ui>*{pointer-events:auto}
+.ident .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.24em;color:var(--ember);text-transform:uppercase}
+.ident h1{font-size:clamp(22px,3.4vw,36px);letter-spacing:.01em;line-height:1.15;margin-top:10px;font-weight:700}
+.ident p{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:10px;line-height:1.7}
+.uplink{margin-top:18px;font-family:var(--mono);font-size:12.5px;color:var(--muted);line-height:1.85;max-width:380px;white-space:pre-wrap}
+.uplink .pr{color:var(--red-b)}
+.uplink .cur{display:inline-block;width:8px;height:15px;background:var(--red-b);margin-left:2px;vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+nav{display:flex;gap:22px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+nav a{color:var(--muted)}
+nav a:hover{color:var(--red-b);text-decoration:none}
+.hint{position:absolute;bottom:28px;left:38px;font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.12em;text-transform:uppercase;z-index:3;opacity:0;transition:opacity 1.2s ease .6s}
+.hero.arrived .hint{opacity:1}
+.hint b{color:var(--red-b);font-weight:500}
+.scrolldown{position:absolute;bottom:28px;right:38px;font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.12em;text-transform:uppercase;z-index:3;opacity:0;transition:opacity 1.2s ease .6s}
+.hero.arrived .scrolldown{opacity:1}
+.scrolldown:hover{color:var(--red-b);text-decoration:none}
+.scanlines{position:absolute;inset:0;pointer-events:none;z-index:2;background:repeating-linear-gradient(0deg,rgba(255,255,255,.016) 0 1px,transparent 1px 3px)}
+.vignette{position:absolute;inset:0;pointer-events:none;z-index:2;background:radial-gradient(ellipse 95% 85% at 50% 45%,transparent 55%,rgba(5,2,3,.65) 100%)}
+.hero-fade{position:absolute;bottom:0;left:0;right:0;height:100px;background:linear-gradient(transparent,var(--bg));pointer-events:none;z-index:2}
+
+/* ---------- DOSSIER PANEL ---------- */
+.chart{position:fixed;top:0;right:0;height:100%;width:min(430px,92vw);background:linear-gradient(160deg,var(--panel),#0e080a);border-left:1px solid var(--line-2);transform:translateX(105%);transition:transform .34s cubic-bezier(.2,.8,.2,1);z-index:50;display:flex;flex-direction:column}
+.chart.open{transform:translateX(0)}
+.chart-head{padding:24px 28px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start}
+.chart-head .tag{font-family:var(--mono);font-size:10px;letter-spacing:.24em;color:var(--ember);text-transform:uppercase}
+.chart-head h2{font-size:20px;margin-top:8px;letter-spacing:.01em}
+.chart-close{background:none;border:1px solid var(--line-2);color:var(--muted);font-family:var(--mono);font-size:12px;padding:6px 10px;cursor:pointer;border-radius:3px}
+.chart-close:hover{color:var(--red-b);border-color:var(--red-dim)}
+.chart-body{padding:24px 28px;overflow-y:auto;flex:1}
+.chart-body .field{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.18em;text-transform:uppercase;margin:20px 0 6px}
+.chart-body .field:first-child{margin-top:0}
+.chart-body p{font-size:14.5px;color:var(--ink);line-height:1.7}
+.chart-body ul{list-style:none;margin-top:2px}
+.chart-body li{font-family:var(--mono);font-size:12.5px;color:var(--muted);padding:5px 0 5px 18px;position:relative}
+.chart-body li::before{content:'>';position:absolute;left:0;color:var(--red-b)}
+.linkrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.linkrow a{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:9px 16px;border-radius:999px;border:1px solid var(--line-2);color:var(--ink);transition:border-color .2s,background .2s}
+.linkrow a:hover{border-color:var(--red-b);background:rgba(255,77,99,.08);text-decoration:none}
+.linkrow a.primary{background:var(--grad);color:#170609;border:none;font-weight:600}
+.linkrow a.primary:hover{filter:brightness(1.1)}
+.scrim{position:fixed;inset:0;background:rgba(6,3,4,.6);opacity:0;pointer-events:none;transition:opacity .3s;z-index:40}
+.scrim.on{opacity:1;pointer-events:auto}
+
+/* ---------- SECTIONS ---------- */
+main{max-width:1000px;margin:0 auto;padding:0 38px}
+section{padding:92px 0;border-top:1px solid var(--line);position:relative}
+section[data-num]::before{content:attr(data-num);position:absolute;top:56px;right:-8px;font-family:var(--display);font-weight:700;font-size:clamp(80px,13vw,170px);line-height:1;color:transparent;-webkit-text-stroke:1px var(--line);pointer-events:none;user-select:none;z-index:0}
+section>*{position:relative;z-index:1}
+.sec-label{font-family:var(--mono);font-size:11px;letter-spacing:.24em;color:var(--ember);text-transform:uppercase;margin-bottom:16px}
+.sec-title{font-size:clamp(20px,2.6vw,28px);margin-bottom:30px;letter-spacing:.01em}
+.about-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:48px;align-items:start}
+.about-grid p{font-size:17px;line-height:1.8;color:var(--ink)}
+.about-grid p+p{margin-top:16px}
+.stat-list{border:1px solid var(--line);border-radius:8px;background:rgba(21,14,17,.6);backdrop-filter:blur(4px)}
+.stat-list div{padding:14px 18px;font-family:var(--mono);font-size:12.5px;color:var(--muted);border-bottom:1px solid var(--line)}
+.stat-list div:last-child{border-bottom:none}
+.stat-list b{color:var(--red-b);font-weight:500}
+
+/* ---------- ASCII BAND ---------- */
+.ascii-band{border-top:1px solid var(--line);background:linear-gradient(180deg,var(--bg),var(--bg-2));padding:56px 0;overflow:hidden;position:relative}
+.ascii-band pre{font-family:var(--mono);font-size:clamp(6px,1.5vw,14px);line-height:1.15;text-align:center;margin:0 auto;white-space:pre;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 18px rgba(255,77,99,.3))}
+.ascii-band .stars-deco{position:absolute;inset:0;pointer-events:none;font-family:var(--mono);color:var(--faint);font-size:12px}
+.ascii-band .stars-deco span{position:absolute;animation:twinkle 3s ease infinite}
+@keyframes twinkle{0%,100%{opacity:.2}50%{opacity:.9}}
+.ascii-band .cap{text-align:center;font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.26em;text-transform:uppercase;margin-top:24px}
+
+/* ---------- PROJECTS ---------- */
+.proj-list{border-top:1px solid var(--line)}
+.proj{display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:baseline;padding:28px 10px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .2s,padding-left .2s,box-shadow .2s}
+.proj:hover{background:rgba(255,77,99,.04);padding-left:22px;box-shadow:inset 3px 0 0 var(--red-b)}
+.proj .idx{font-family:var(--mono);font-size:12px;color:var(--faint)}
+.proj:hover .idx{color:var(--red-b)}
+.proj .main h3{font-size:18px;display:inline;letter-spacing:.01em}
+.proj .main .k{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--ember);text-transform:uppercase;margin-left:14px}
+.proj .desc{font-size:14px;color:var(--muted);line-height:1.65;max-height:0;opacity:0;overflow:hidden;transition:max-height .3s,opacity .3s,margin .3s;margin-top:0}
+.proj:hover .desc,.proj:focus-within .desc{max-height:130px;opacity:1;margin-top:12px}
+.proj .links{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;max-height:0;opacity:0;overflow:hidden;transition:max-height .3s,opacity .3s}
+.proj:hover .links,.proj:focus-within .links{max-height:60px;opacity:1}
+.proj .links a{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-b);border:1px solid var(--red-dim);padding:5px 12px;border-radius:999px;transition:background .15s}
+.proj .links a:hover{background:rgba(255,77,99,.1);text-decoration:none}
+.proj .arrow{font-family:var(--mono);color:var(--faint);font-size:18px;transition:color .2s,transform .2s}
+.proj:hover .arrow{color:var(--red-b);transform:translateX(3px)}
+
+/* ---------- COMPETITIONS ---------- */
+.comp-row{display:flex;gap:18px;flex-wrap:wrap}
+.comp{flex:1;min-width:280px;background:rgba(21,14,17,.6);border:1px solid var(--line);border-radius:10px;padding:26px;transition:border-color .2s,transform .2s,box-shadow .2s;position:relative;overflow:hidden}
+.comp::after{content:'';position:absolute;top:0;left:0;width:100%;height:2px;background:var(--grad);opacity:0;transition:opacity .2s}
+.comp:hover{border-color:var(--line-2);transform:translateY(-3px);box-shadow:0 16px 46px -20px rgba(255,77,99,.4)}
+.comp:hover::after{opacity:1}
+.comp .k{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--ember);text-transform:uppercase}
+.comp h3{font-size:16px;margin:12px 0 8px}
+.comp p{font-size:14px;color:var(--muted);line-height:1.65}
+
+/* ---------- CONTACT ---------- */
+.chan{display:flex;flex-direction:column;border-top:1px solid var(--line);margin-top:8px}
+.chan a{display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center;padding:22px 10px;border-bottom:1px solid var(--line);color:var(--ink);transition:background .2s,padding-left .2s,box-shadow .2s}
+.chan a:hover{background:rgba(255,77,99,.04);padding-left:22px;box-shadow:inset 3px 0 0 var(--red-b);text-decoration:none}
+.chan .plat{font-family:var(--mono);font-size:11px;color:var(--ember);letter-spacing:.18em;text-transform:uppercase}
+.chan .addr{font-size:16px}
+.chan .go{font-family:var(--mono);color:var(--faint);font-size:16px;transition:color .2s,transform .2s}
+.chan a:hover .go{color:var(--red-b);transform:translateX(3px)}
+
+/* ---------- REVEAL + FOOTER ---------- */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+.reveal.on{opacity:1;transform:none}
+.reveal.d1{transition-delay:.08s}.reveal.d2{transition-delay:.16s}.reveal.d3{transition-delay:.24s}
+footer{border-top:1px solid var(--line);margin-top:40px;padding:46px 38px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+footer .sig{font-family:var(--mono);font-size:13px;color:var(--red-b)}
+.beat{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ember);margin-right:8px;animation:pulse 2s ease infinite;vertical-align:1px}
+@keyframes pulse{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:1;transform:scale(1.15)}}
+footer small{font-family:var(--mono);font-size:11px;color:var(--faint)}
+
+@media(max-width:760px){
+  .hero-ui{padding:22px}
+  nav{display:none}
+  .hint{left:22px;bottom:20px}
+  .scrolldown{right:22px;bottom:20px}
+  main{padding:0 22px}
+  .about-grid{grid-template-columns:1fr}
+  .proj{grid-template-columns:auto 1fr;gap:16px}
+  .proj .arrow{display:none}
+  .proj .desc,.proj .links{max-height:none;opacity:1;margin-top:10px}
+  footer{padding:36px 22px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}.reveal{opacity:1;transform:none}.hero-ui,.hint,.scrolldown{opacity:1!important}}
+</style>
+</head>
+<body>
+
+<!-- ============ HERO ============ -->
+<header class="hero" id="hero">
+  <canvas id="sky" aria-label="Interactive graph of Sohan's projects around an ASCII SOHAN core. Drag nodes; click one for its dossier."></canvas>
+  <div class="hero-ui">
+    <div class="ident">
+      <div class="eyebrow">// attack path: enumerated</div>
+      <h1 class="grad-text">sohan saimbhi</h1>
+      <p>security engineer · core red teamer<br>tradecraft × strategy</p>
+      <div class="uplink"><span class="pr">sohan@redteam</span>:~$ <span id="wtype"></span><span class="cur"></span></div>
+    </div>
+    <nav>
+      <a href="#about">about</a>
+      <a href="#projects">projects</a>
+      <a href="#competitions">competitions</a>
+      <a href="#contact">contact</a>
+    </nav>
+  </div>
+  <div class="hint"><b>drag</b> nodes · <b>click</b> for dossier</div>
+  <a class="scrolldown" href="#about">descend ↓</a>
+  <div class="scanlines" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="hero-fade"></div>
+</header>
+
+<!-- ============ DOSSIER PANEL ============ -->
+<div class="scrim" id="scrim"></div>
+<aside class="chart" id="chart" aria-hidden="true">
+  <div class="chart-head">
+    <div>
+      <div class="tag" id="d-tag">OBJECT // PROJECT</div>
+      <h2 id="d-title">—</h2>
+    </div>
+    <button class="chart-close" id="d-close">ESC</button>
+  </div>
+  <div class="chart-body" id="d-body"></div>
+</aside>
+
+<main>
+  <!-- ============ ABOUT ============ -->
+  <section id="about" data-num="01">
+    <div class="sec-label reveal">01 // whoami</div>
+    <h2 class="sec-title reveal d1">i think in attack paths.</h2>
+    <div class="about-grid">
+      <div class="reveal d2">
+        <p>i'm a security engineer who mixes deep technical tradecraft with strategic thinking — helping teams and executives figure out which threats actually matter, and how to shut them down.</p>
+        <p>at my core i'm a red teamer. i map how an adversary gets in, moves, escalates, and wins — then break that chain before they do. same lens runs through everything i build, from offensive tooling and osint-driven threat research to ai-native defensive systems.</p>
+        <p>outside of that i read too much on agent security, write the occasional ieee paper, and lose sleep over prompt injection.</p>
+      </div>
+      <div class="stat-list reveal d3">
+        <div>role — <b>security engineer @ goatsec</b></div>
+        <div>focus — <b>red team · pentest · ai security</b></div>
+        <div>research — <b>3× ieee published</b></div>
+        <div>education — <b>b.s. cybersecurity, rit</b></div>
+        <div>base — <b>rochester, ny</b></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============ ASCII BAND ============ -->
+<div class="ascii-band" aria-hidden="true">
+  <div class="stars-deco" id="stars-deco"></div>
+<pre id="ascii">
+ ██████╗ ███████╗██████╗     ████████╗███████╗ █████╗ ███╗   ███╗
+ ██╔══██╗██╔════╝██╔══██╗    ╚══██╔══╝██╔════╝██╔══██╗████╗ ████║
+ ██████╔╝█████╗  ██║  ██║       ██║   █████╗  ███████║██╔████╔██║
+ ██╔══██╗██╔══╝  ██║  ██║       ██║   ██╔══╝  ██╔══██║██║╚██╔╝██║
+ ██║  ██║███████╗██████╔╝       ██║   ███████╗██║  ██║██║ ╚═╝ ██║
+ ╚═╝  ╚═╝╚══════╝╚═════╝        ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝
+</pre>
+  <div class="cap">// think like the adversary · break the chain</div>
+</div>
+
+<main>
+  <!-- ============ PROJECTS ============ -->
+  <section id="projects" data-num="02">
+    <div class="sec-label reveal">02 // operations</div>
+    <h2 class="sec-title reveal d1">stuff i've built</h2>
+    <div class="proj-list reveal d2">
+      <div class="proj" tabindex="0" data-node="guardpost">
+        <div class="idx">/01</div>
+        <div class="main">
+          <h3>guardpost</h3><span class="k">browser security</span>
+          <div class="desc">browser extension that scans pages for explicit and harmful content in real time, warns when a site is unsuitable for children, and gates flagged pages behind an adult-verified captcha.</div>
+          <div class="links">
+            <a href="https://github.com/sss3287" target="_blank" rel="noopener" data-stop>repo ↗</a>
+          </div>
+        </div>
+        <div class="arrow">→</div>
+      </div>
+      <div class="proj" tabindex="0" data-node="btb">
+        <div class="idx">/02</div>
+        <div class="main">
+          <h3>blue team buddy</h3><span class="k">ai × defense</span>
+          <div class="desc">multi-agent defensive security platform built on claude for ccdc-style network defense: fleet-managed osquery telemetry, sigma detections, and automated hardening with apply / verify / rollback.</div>
+          <div class="links">
+            <a href="https://github.com/sss3287" target="_blank" rel="noopener" data-stop>repo ↗</a>
+          </div>
+        </div>
+        <div class="arrow">→</div>
+      </div>
+      <div class="proj" tabindex="0" data-node="vulnerai">
+        <div class="idx">/03</div>
+        <div class="main">
+          <h3>vulnerai</h3><span class="k">research · ieee</span>
+          <div class="desc">ieee-published research on llm-based vulnerability detection — evaluating how well large language models find real security flaws in code, and where they break down.</div>
+          <div class="links">
+            <a href="https://github.com/sss3287" target="_blank" rel="noopener" data-stop>paper ↗</a>
+          </div>
+        </div>
+        <div class="arrow">→</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COMPETITIONS ============ -->
+  <section id="competitions" data-num="03">
+    <div class="sec-label reveal">03 // engagements</div>
+    <h2 class="sec-title reveal d1">where i've competed</h2>
+    <div class="comp-row reveal d2">
+      <div class="comp">
+        <div class="k">offense</div>
+        <h3>cptc</h3>
+        <p>collegiate penetration testing competition — full-scope pentests under realistic client constraints: exploitation, reporting, and executive debriefs.</p>
+      </div>
+      <div class="comp">
+        <div class="k">offense</div>
+        <h3>ccdc red team</h3>
+        <p>red team for the collegiate cyber defense competition — playing the live adversary against student blue teams defending production-style networks.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTACT ============ -->
+  <section id="contact" data-num="04">
+    <div class="sec-label reveal">04 // c2 channels</div>
+    <h2 class="sec-title reveal d1">say hi</h2>
+    <p class="reveal d2" style="color:var(--muted);max-width:540px">open to red team work, security research collabs, and anyone who wants to argue about attack paths.</p>
+    <div class="chan reveal d3">
+      <a href="https://github.com/sss3287" target="_blank" rel="noopener">
+        <span class="plat">code</span><span class="addr">github.com/sss3287</span><span class="go">↗</span>
+      </a>
+      <a href="https://www.linkedin.com/in/sohansaimbhi/" target="_blank" rel="noopener">
+        <span class="plat">professional</span><span class="addr">linkedin.com/in/sohansaimbhi</span><span class="go">↗</span>
+      </a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="sig"><span class="beat" aria-hidden="true"></span>[ ~ ]$ exit_</div>
+  <small><span id="ftime"></span> · © 2026 sohan saimbhi · no trackers, no cookies, just canvas</small>
+</footer>
+
+<script>
+/* ================= PROJECT LINKS — edit these ================= */
+const LINKS={
+  guardpost:[{label:'repo ↗',href:'https://github.com/sss3287'}],
+  btb:[{label:'repo ↗',href:'https://github.com/sss3287'}],
+  vulnerai:[{label:'read the paper ↗',href:'https://github.com/sss3287',primary:true}],
+};
+function linkButtons(id){
+  const ls=LINKS[id]||[];
+  if(!ls.length)return'';
+  return '<div class="linkrow">'+ls.map(l=>'<a href="'+l.href+'" target="_blank" rel="noopener" class="'+(l.primary?'primary':'')+'">'+l.label+'</a>').join('')+'</div>';
+}
+const CHARTS={
+  sohan:{tag:'OBJECT // OPERATOR',title:'sohan saimbhi',html:`
+    <div class="field">role</div><p>security engineer @ goatsec — core red teamer.</p>
+    <div class="field">summary</div><p>mixes deep technical tradecraft with strategic thinking, helping teams and executives counter their security threats. thinks in attack paths.</p>
+    <div class="field">capabilities</div>
+    <ul><li>penetration testing / red team ops</li><li>osint-driven threat research</li><li>ai-native security tooling</li><li>3× ieee-published research</li></ul>
+    <div class="linkrow"><a href="#about">full dossier ↓</a></div>`},
+  guardpost:{tag:'OBJECT // PROJECT',title:'guardpost',html:`
+    <div class="field">class</div><p>browser extension · content safety</p>
+    <div class="field">function</div><p>scans pages for explicit and harmful content, warns when a site is unsuitable for children, and gates flagged pages behind a captcha an adult must solve.</p>
+    <div class="field">signals</div>
+    <ul><li>real-time page content analysis</li><li>warn-and-gate flow</li><li>adult-verified access control</li></ul>
+    `+linkButtons('guardpost')},
+  btb:{tag:'OBJECT // PROJECT',title:'blue team buddy',html:`
+    <div class="field">class</div><p>multi-agent defensive security platform</p>
+    <div class="field">function</div><p>claude-driven agent swarm for ccdc-style network defense — telemetry in, detections evaluated, hardening applied with verify and rollback.</p>
+    <div class="field">stack</div>
+    <ul><li>claude code agent playbooks</li><li>fleet + osquery telemetry</li><li>sigma detection layer</li><li>python tooling · sqlite coordination</li></ul>
+    `+linkButtons('btb')},
+  vulnerai:{tag:'OBJECT // RESEARCH',title:'vulnerai',html:`
+    <div class="field">class</div><p>ieee-published research</p>
+    <div class="field">function</div><p>llm-based vulnerability detection — measuring how well large language models find real security flaws in code, and where they fail.</p>
+    <div class="field">signals</div>
+    <ul><li>peer-reviewed (ieee)</li><li>llm security evaluation</li><li>one of three published papers</li></ul>
+    `+linkButtons('vulnerai')},
+  cptc:{tag:'OBJECT // ENGAGEMENT',title:'cptc',html:`
+    <div class="field">class</div><p>collegiate penetration testing competition</p>
+    <div class="field">function</div><p>full-scope pentests under realistic client constraints — exploitation through reporting and executive debriefs.</p>
+    <div class="linkrow"><a href="#competitions">see engagements ↓</a></div>`},
+  ccdc:{tag:'OBJECT // ENGAGEMENT',title:'ccdc red team',html:`
+    <div class="field">class</div><p>live adversary emulation</p>
+    <div class="field">function</div><p>red team for the collegiate cyber defense competition — attacking student blue teams defending production-style networks in real time.</p>
+    <div class="linkrow"><a href="#competitions">see engagements ↓</a></div>`},
+  github:{tag:'OBJECT // CHANNEL',title:'github',html:`
+    <div class="field">address</div><p>github.com/sss3287</p>
+    <div class="linkrow"><a class="primary" href="https://github.com/sss3287" target="_blank" rel="noopener">open github ↗</a></div>`},
+  linkedin:{tag:'OBJECT // CHANNEL',title:'linkedin',html:`
+    <div class="field">address</div><p>linkedin.com/in/sohansaimbhi</p>
+    <div class="linkrow"><a class="primary" href="https://www.linkedin.com/in/sohansaimbhi/" target="_blank" rel="noopener">open linkedin ↗</a></div>`},
+};
+
+/* ================= HERO: WARP → ASCII ATTACK GRAPH ================= */
+const canvas=document.getElementById('sky');
+const ctx=canvas.getContext('2d');
+const hero=document.getElementById('hero');
+const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let W,H,CX,CY,t=0;
+
+let phase=reduced?'graph':'warp';
+let warpFrame=0;
+const WARP_LEN=130, ARRIVE_LEN=50;
+let warpStars=[];
+
+/* ASCII core: SOHAN in compact block letters */
+const CORE_ASCII=[
+'▄▀▀▀ ▄▀▀▄ █  █ ▄▀▀▄ █▄ █',
+'▀▀▀▄ █  █ █▀▀█ █▄▄█ █▀▄█',
+'▀▀▀▀  ▀▀  ▀  ▀ ▀  ▀ ▀  ▀'
+];
+const CORE_FONT_PX=14;
+
+const NODES=[
+  {id:'sohan',label:'',type:'root',r:0},
+  {id:'guardpost',label:'[ guardpost ]',type:'project',r0:20,r:20,edge:'BUILT'},
+  {id:'btb',label:'[ blue team buddy ]',type:'project',r0:20,r:20,edge:'BUILT'},
+  {id:'vulnerai',label:'[ vulnerai ]',type:'project',r0:20,r:20,edge:'AUTHORED'},
+  {id:'cptc',label:'[ cptc ]',type:'comp',r0:16,r:16,edge:'COMPETED_IN'},
+  {id:'ccdc',label:'[ ccdc red team ]',type:'comp',r0:16,r:16,edge:'ADVERSARY_FOR'},
+  {id:'github',label:'[ github ]',type:'link',r0:13,r:13,edge:'PUBLISHES_TO'},
+  {id:'linkedin',label:'[ linkedin ]',type:'link',r0:13,r:13,edge:'PROFILE_ON'},
+];
+const EDGES=NODES.filter(n=>n.id!=='sohan').map(n=>({a:'sohan',b:n.id,label:n.edge}));
+const byId=Object.fromEntries(NODES.map(n=>[n.id,n]));
+let hoverNode=null,dragNode=null;
+
+function resize(){
+  const DPR=Math.min(window.devicePixelRatio||1,2);
+  W=canvas.clientWidth;H=canvas.clientHeight;CX=W/2;CY=H/2;
+  canvas.width=W*DPR;canvas.height=H*DPR;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  buildWarp();
+  /* size the root hit-area to the ascii block */
+  ctx.font='600 '+CORE_FONT_PX+'px JetBrains Mono';
+  const coreW=Math.max(...CORE_ASCII.map(l=>ctx.measureText(l).width));
+  const coreH=CORE_ASCII.length*CORE_FONT_PX*1.15;
+  const root=byId.sohan;
+  root.r=Math.max(coreW,coreH)/2+14;
+  root.coreW=coreW;root.coreH=coreH;
+  /* size satellite nodes to their label width so labels can't overlap */
+  NODES.forEach(n=>{
+    if(n.type==='root')return;
+    ctx.font='500 '+(n.type==='link'?'11':'12')+'px JetBrains Mono';
+    n.r=Math.max(n.r0,ctx.measureText(n.label).width/2+12);
+  });
+}
+function buildWarp(){
+  warpStars=[];
+  const n=W<700?260:480;
+  for(let i=0;i<n;i++){
+    warpStars.push({x:(Math.random()*2-1),y:(Math.random()*2-1),z:Math.random()*0.9+0.1});
+  }
+}
+window.addEventListener('resize',resize);resize();
+
+NODES.forEach((n,i)=>{
+  const a=(i/NODES.length)*Math.PI*2;
+  n.x=CX+Math.cos(a)*Math.min(W,H)*0.3;
+  n.y=CY+Math.sin(a)*Math.min(W,H)*0.3;
+  if(n.id==='sohan'){n.x=CX;n.y=CY;}
+  n.vx=0;n.vy=0;
+});
+
+function stepSim(){
+  for(let i=0;i<NODES.length;i++)for(let j=i+1;j<NODES.length;j++){
+    const a=NODES[i],b=NODES[j];
+    let dx=b.x-a.x,dy=b.y-a.y,d2=dx*dx+dy*dy||1,d=Math.sqrt(d2);
+    const f=Math.min(11000/d2,4);
+    dx/=d;dy/=d;
+    a.vx-=dx*f;a.vy-=dy*f;b.vx+=dx*f;b.vy+=dy*f;
+  }
+  const isMobile=W<700;
+  EDGES.forEach(e=>{
+    const a=byId[e.a],b=byId[e.b];
+    const rest=(isMobile?150:225)+(b.r*2);
+    let dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy)||1;
+    const f=(d-rest)*0.006;
+    dx/=d;dy/=d;
+    a.vx+=dx*f*d*0.02;a.vy+=dy*f*d*0.02;
+    b.vx-=dx*f*d*0.02;b.vy-=dy*f*d*0.02;
+  });
+  NODES.forEach(n=>{
+    n.vx+=(CX-n.x)*0.0012;n.vy+=(CY-n.y)*0.0012;
+    if(n!==dragNode){n.vx*=0.9;n.vy*=0.9;n.x+=n.vx;n.y+=n.vy;}
+    const m=n.r+16;
+    n.x=Math.max(m,Math.min(W-m,n.x));
+    n.y=Math.max(m,Math.min(H-m,n.y));
+  });
+  /* hard separation: labels are wide, never let bounds overlap */
+  for(let pass=0;pass<2;pass++){
+    for(let i=0;i<NODES.length;i++)for(let j=i+1;j<NODES.length;j++){
+      const a=NODES[i],b=NODES[j];
+      let dx=b.x-a.x,dy=b.y-a.y;
+      let d=Math.sqrt(dx*dx+dy*dy)||0.01;
+      const min=a.r+b.r+10;
+      if(d<min){
+        const push=(min-d)/2;
+        dx/=d;dy/=d;
+        if(a!==dragNode){a.x-=dx*push;a.y-=dy*push;}
+        if(b!==dragNode){b.x+=dx*push;b.y+=dy*push;}
+      }
+    }
+  }
+}
+
+const NODE_COLORS={project:'#ff4d63',comp:'#ff8663',link:'#b9b0b3'};
+
+function drawWarp(alpha){
+  const ease=Math.min(1,warpFrame/WARP_LEN);
+  const spd=0.055*(1-ease*ease)+0.0015;
+  const f=Math.min(W,H)*0.5;
+  warpStars.forEach(s=>{
+    const pz=s.z;
+    s.z-=spd;
+    if(s.z<=0.02){s.x=Math.random()*2-1;s.y=Math.random()*2-1;s.z=1;return;}
+    const px=CX+(s.x/pz)*f, py=CY+(s.y/pz)*f;
+    const nx=CX+(s.x/s.z)*f, ny=CY+(s.y/s.z)*f;
+    if(nx<-50||nx>W+50||ny<-50||ny>H+50)return;
+    const w=(1-s.z)*2.2;
+    const grad=ctx.createLinearGradient(px,py,nx,ny);
+    grad.addColorStop(0,'rgba(255,77,99,0)');
+    grad.addColorStop(1,'rgba(239,232,234,'+(0.85*alpha*(1-s.z))+')');
+    ctx.strokeStyle=grad;ctx.lineWidth=w;
+    ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(nx,ny);ctx.stroke();
+  });
+}
+
+function drawGraph(alpha){
+  /* faint grid */
+  ctx.strokeStyle='rgba(255,77,99,'+(0.045*alpha)+')';ctx.lineWidth=1;
+  const g=48;
+  for(let x=0;x<W;x+=g){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=g){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  /* edges */
+  EDGES.forEach(e=>{
+    const a=byId[e.a],b=byId[e.b];
+    const hot=hoverNode&&(hoverNode===a||hoverNode===b);
+    ctx.strokeStyle=hot?'rgba(255,134,99,'+(0.95*alpha)+')':'rgba(255,77,99,'+(0.22*alpha)+')';
+    ctx.lineWidth=hot?1.6:1;
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+    if(!reduced){
+      const p=(t*0.004+EDGES.indexOf(e)*0.13)%1;
+      const px=a.x+(b.x-a.x)*p,py=a.y+(b.y-a.y)*p;
+      ctx.fillStyle=hot?'rgba(255,134,99,'+(0.95*alpha)+')':'rgba(185,176,179,'+(0.5*alpha)+')';
+      ctx.beginPath();ctx.arc(px,py,1.8,0,Math.PI*2);ctx.fill();
+    }
+    if(hot&&W>700){
+      const mx2=(a.x+b.x)/2,my2=(a.y+b.y)/2;
+      ctx.font='10px JetBrains Mono';
+      ctx.fillStyle='rgba(255,134,99,'+(0.95*alpha)+')';
+      ctx.textAlign='center';
+      ctx.fillText(e.label,mx2,my2-6);
+    }
+  });
+  /* satellite nodes: ascii-bracketed labels */
+  NODES.forEach(n=>{
+    if(n.type==='root')return;
+    const hot=hoverNode===n;
+    const c=NODE_COLORS[n.type];
+    ctx.font=(hot?'600 ':'500 ')+(n.type==='link'?'11':'12')+'px JetBrains Mono';
+    ctx.textAlign='center';
+    if(hot){
+      ctx.fillStyle='rgba(255,77,99,'+(0.12*alpha)+')';
+      ctx.beginPath();ctx.arc(n.x,n.y,n.r+10,0,Math.PI*2);ctx.fill();
+    }
+    /* small node dot above the label */
+    ctx.fillStyle=hexA(c,alpha);
+    ctx.beginPath();ctx.arc(n.x,n.y-14,hot?3.4:2.6,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=hot?'rgba(239,232,234,'+alpha+')':hexA(c,0.9*alpha);
+    ctx.fillText(n.label,n.x,n.y+6);
+  });
+  /* root: ASCII SOHAN core with gradient + breathing glow */
+  const root=byId.sohan;
+  const breathe=reduced?0.35:(0.28+0.12*Math.sin(t*0.03));
+  const glow=ctx.createRadialGradient(root.x,root.y,0,root.x,root.y,root.r+30);
+  glow.addColorStop(0,'rgba(255,77,99,'+(breathe*alpha)+')');
+  glow.addColorStop(1,'rgba(255,77,99,0)');
+  ctx.fillStyle=glow;
+  ctx.beginPath();ctx.arc(root.x,root.y,root.r+30,0,Math.PI*2);ctx.fill();
+  ctx.font='600 '+CORE_FONT_PX+'px JetBrains Mono';
+  ctx.textAlign='center';
+  const lh=CORE_FONT_PX*1.15;
+  const y0=root.y-((CORE_ASCII.length-1)*lh)/2;
+  const lineCols=['255,77,99','255,134,99','185,176,179'];
+  CORE_ASCII.forEach((line,i)=>{
+    ctx.fillStyle='rgba('+lineCols[i%3]+','+alpha+')';
+    ctx.fillText(line,root.x,y0+i*lh+CORE_FONT_PX*0.35);
+  });
+  /* rotating dashed targeting ring around the core */
+  ctx.strokeStyle='rgba(255,77,99,'+(0.5*alpha)+')';
+  ctx.lineWidth=1;
+  ctx.setLineDash([4,6]);
+  ctx.beginPath();ctx.arc(root.x,root.y,root.r+6,(t*0.008)%(Math.PI*2),(t*0.008)%(Math.PI*2)+Math.PI*1.55);ctx.stroke();
+  ctx.setLineDash([]);
+}
+function hexA(hex,a){
+  const n=parseInt(hex.slice(1),16);
+  return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';
+}
+
+let settled=0;
+(function loop(){
+  t++;
+  ctx.clearRect(0,0,W,H);
+  if(phase==='warp'){
+    warpFrame++;
+    drawWarp(1);
+    if(warpFrame>=WARP_LEN){phase='arrive';warpFrame=0;hero.classList.add('arrived');}
+  }else if(phase==='arrive'){
+    warpFrame++;
+    const k=warpFrame/ARRIVE_LEN;
+    drawWarp(1-k);
+    stepSim();
+    drawGraph(k);
+    if(warpFrame>=ARRIVE_LEN)phase='graph';
+  }else{
+    if(reduced){hero.classList.add('arrived');if(settled<240){stepSim();settled++;}}
+    else stepSim();
+    drawGraph(1);
+  }
+  requestAnimationFrame(loop);
+})();
+
+/* drag + click */
+function pick(x,y){
+  for(let i=NODES.length-1;i>=0;i--){
+    const n=NODES[i],dx=x-n.x,dy=y-n.y;
+    if(dx*dx+dy*dy<(n.r+12)*(n.r+12))return n;
+  }
+  return null;
+}
+function pos(ev){
+  const r=canvas.getBoundingClientRect();
+  const p=ev.touches?ev.touches[0]:ev;
+  return{x:p.clientX-r.left,y:p.clientY-r.top};
+}
+let downAt=null,moved=false;
+canvas.addEventListener('pointerdown',ev=>{
+  if(phase!=='graph')return;
+  const p=pos(ev);const n=pick(p.x,p.y);
+  if(n){dragNode=n;downAt=p;moved=false;canvas.classList.add('dragging');canvas.setPointerCapture(ev.pointerId);}
+});
+canvas.addEventListener('pointermove',ev=>{
+  const p=pos(ev);
+  if(dragNode){
+    dragNode.x=p.x;dragNode.y=p.y;dragNode.vx=0;dragNode.vy=0;
+    if(downAt&&Math.hypot(p.x-downAt.x,p.y-downAt.y)>6)moved=true;
+  }else{
+    hoverNode=pick(p.x,p.y);
+    canvas.style.cursor=hoverNode?'pointer':'grab';
+  }
+});
+canvas.addEventListener('pointerup',()=>{
+  if(dragNode&&!moved)openChart(dragNode.id);
+  dragNode=null;downAt=null;canvas.classList.remove('dragging');
+});
+canvas.addEventListener('pointerleave',()=>{hoverNode=null;});
+
+/* ================= DOSSIER PANEL ================= */
+const chart=document.getElementById('chart'),scrim=document.getElementById('scrim');
+function openChart(id){
+  const d=CHARTS[id];if(!d)return;
+  document.getElementById('d-tag').textContent=d.tag;
+  document.getElementById('d-title').textContent=d.title;
+  document.getElementById('d-body').innerHTML=d.html;
+  chart.classList.add('open');scrim.classList.add('on');
+  chart.setAttribute('aria-hidden','false');
+}
+function closeChart(){
+  chart.classList.remove('open');scrim.classList.remove('on');
+  chart.setAttribute('aria-hidden','true');
+}
+document.getElementById('d-close').addEventListener('click',closeChart);
+scrim.addEventListener('click',closeChart);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeChart();});
+chart.addEventListener('click',e=>{if(e.target.matches('a[href^="#"]'))closeChart();});
+document.querySelectorAll('.proj').forEach(el=>{
+  const id=el.dataset.node;
+  el.addEventListener('click',e=>{if(e.target.closest('[data-stop]'))return;openChart(id);});
+  el.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&!e.target.closest('[data-stop]')){e.preventDefault();openChart(id);}});
+});
+
+/* ================= SCROLL REVEAL ================= */
+const revealIO=new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');revealIO.unobserve(e.target);}});
+},{threshold:0.15});
+document.querySelectorAll('.reveal').forEach(el=>revealIO.observe(el));
+
+/* ================= ASCII DECRYPT ================= */
+(function(){
+  const pre=document.getElementById('ascii');
+  if(!pre||reduced)return;
+  const finalText=pre.textContent;
+  const pool='█▓▒░╬╪┼╳#%@*+=/\\|';
+  let resolved=0;
+  const total=finalText.length;
+  pre.textContent=finalText.replace(/[^\s]/g,()=>pool[Math.floor(Math.random()*pool.length)]);
+  const asciiIO=new IntersectionObserver(es=>{
+    if(!es[0].isIntersecting)return;
+    asciiIO.disconnect();
+    const step=Math.ceil(total/45);
+    (function scramble(){
+      resolved=Math.min(total,resolved+step);
+      let out='';
+      for(let i=0;i<total;i++){
+        const c=finalText[i];
+        if(/\s/.test(c)||i<resolved)out+=c;
+        else out+=pool[Math.floor(Math.random()*pool.length)];
+      }
+      pre.textContent=out;
+      if(resolved<total)requestAnimationFrame(()=>setTimeout(scramble,28));
+    })();
+  },{threshold:0.4});
+  asciiIO.observe(pre);
+})();
+
+/* twinkling deco glyphs around ascii */
+(function(){
+  const deco=document.getElementById('stars-deco');
+  if(!deco)return;
+  const glyphs=['+','·','×','*','>'];
+  for(let i=0;i<16;i++){
+    const s=document.createElement('span');
+    s.textContent=glyphs[Math.floor(Math.random()*glyphs.length)];
+    s.style.left=Math.random()*96+'%';
+    s.style.top=Math.random()*88+'%';
+    s.style.animationDelay=(Math.random()*3)+'s';
+    s.style.color=Math.random()<0.35?'var(--red-b)':Math.random()<0.55?'var(--ember)':'var(--faint)';
+    deco.appendChild(s);
+  }
+})();
+
+/* ================= WHOAMI TYPER ================= */
+(function(){
+  const el=document.getElementById('wtype');
+  if(!el)return;
+  const lines=[
+    'whoami',
+    '> sohan — core red teamer @ goatsec',
+    'cat ./mindset.txt',
+    "> i break in so they can't.",
+    'ls ~/loot',
+    '> guardpost  blue-team-buddy  vulnerai',
+    'uptime',
+    '> caffeinated · always enumerating'
+  ];
+  if(reduced){el.textContent='whoami → sohan, core red teamer';return;}
+  let li=0,ci=0,out='';
+  function tick(){
+    const line=lines[li];
+    if(ci<line.length){
+      out+=line[ci++];
+      el.textContent=out;
+      setTimeout(tick,line.startsWith('>')?18:55);
+    }else{
+      setTimeout(()=>{
+        li++;
+        if(li>=lines.length){
+          setTimeout(()=>{out='';ci=0;li=0;el.textContent='';tick();},4200);
+          return;
+        }
+        out+='\n';
+        if(!lines[li].startsWith('>')){out+='sohan@redteam:~$ ';}
+        el.textContent=out;ci=0;
+        setTimeout(tick,lines[li].startsWith('>')?260:420);
+      },line.startsWith('>')?900:250);
+    }
+  }
+  el.style.whiteSpace='pre-wrap';
+  setTimeout(()=>{tick();},2600);
+})();
+
+/* ================= FOOTER CLOCK ================= */
+(function(){
+  const f=document.getElementById('ftime');
+  if(!f)return;
+  const tickClock=()=>{f.textContent='local '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});};
+  tickClock();setInterval(tickClock,1000);
+})();
+</script>
+</body>
+</html>
